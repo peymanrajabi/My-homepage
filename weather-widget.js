@@ -2,7 +2,7 @@
 (function() {
     const lat = 33.7490;
     const lon = -84.3880;
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=celsius&wind_speed_unit=kmh&timezone=auto`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit&wind_speed_unit=kmh&timezone=auto`;
 
     const widget = document.getElementById('weather-widget');
     const loading = widget.querySelector('.weather-loading');
@@ -11,6 +11,9 @@
     const temp = widget.querySelector('.weather-temp');
     const cond = widget.querySelector('.weather-condition');
     const wind = widget.querySelector('.weather-wind');
+    const icon = document.createElement('span');
+    icon.className = 'weather-icon';
+    widget.querySelector('.weather-location').before(icon);
 
     fetch(url, {cache: 'reload'})
         .then(r => r.json())
@@ -18,9 +21,10 @@
             if (!data.current_weather) throw new Error('No data');
             loading.style.display = 'none';
             content.style.display = '';
-            temp.textContent = Math.round(data.current_weather.temperature) + '°C';
+            temp.textContent = Math.round(data.current_weather.temperature) + '°F';
             cond.textContent = weatherCodeToText(data.current_weather.weathercode);
             wind.textContent = 'Wind: ' + Math.round(data.current_weather.windspeed) + ' km/h';
+            icon.innerHTML = weatherCodeToIcon(data.current_weather.weathercode);
         })
         .catch(() => {
             loading.style.display = 'none';
@@ -42,5 +46,22 @@
             95: 'Thunderstorm', 96: 'Thunderstorm', 99: 'Thunderstorm'
         };
         return map[code] || 'Unknown';
+    }
+
+    // Weather icon mapping
+    function weatherCodeToIcon(code) {
+        const icons = {
+            0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️',
+            45: '🌫️', 48: '🌫️',
+            51: '🌦️', 53: '🌦️', 55: '🌦️',
+            56: '🌧️', 57: '🌧️',
+            61: '🌧️', 63: '🌧️', 65: '🌧️',
+            66: '🌧️', 67: '🌧️',
+            71: '🌨️', 73: '🌨️', 75: '🌨️',
+            77: '🌨️', 80: '🌦️', 81: '🌦️', 82: '🌦️',
+            85: '🌨️', 86: '🌨️',
+            95: '⛈️', 96: '⛈️', 99: '⛈️'
+        };
+        return icons[code] || '❓';
     }
 })();
